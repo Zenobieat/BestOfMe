@@ -5,6 +5,7 @@ import { useStore } from "@/lib/store";
 import { useT } from "@/lib/i18n";
 import { BottomNav } from "@/components/BottomNav";
 import { Pet3D } from "@/components/Pet3D";
+import { BuddyAvatar } from "@/components/BuddyAvatar";
 import { BUDDIES_CATALOG, ACCESSORIES_CATALOG, TIER_COLORS } from "@/lib/catalog";
 import { Coins, Check, Lock, Pencil, ShoppingBag, PawPrint, Star } from "lucide-react";
 
@@ -125,10 +126,11 @@ export default function PetsPage() {
                       flexShrink: 0, width: 64, height: 64, borderRadius: 16,
                       border: `2px solid ${selectedPetId === p.id ? "var(--primary)" : "var(--border)"}`,
                       background: selectedPetId === p.id ? "rgba(99,102,241,0.15)" : "var(--card)",
-                      overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      overflow: "hidden",
                     }}
                   >
-                    <Pet3D species={p.species} size={60} />
+                    <BuddyAvatar species={p.species} size={52} />
                   </button>
                 ))}
               </div>
@@ -323,7 +325,7 @@ export default function PetsPage() {
                     )}
 
                     <div style={{ display: "flex", justifyContent: "center", marginTop: 14, marginBottom: 6 }}>
-                      <Pet3D species={buddy.id} size={100} />
+                      <BuddyAvatar species={buddy.id} size={90} />
                     </div>
 
                     <p style={{ fontWeight: 700, fontSize: 13, marginBottom: 2, lineHeight: 1.2 }}>{buddy.name}</p>

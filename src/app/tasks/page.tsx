@@ -21,8 +21,9 @@ const GOAL_COLORS: Record<GoalCategory, string> = {
   creativity: "#F97316", health: "#10B981",
 };
 
+// Simplified: removed biweekly and monthly from UI
 const RECURRENCE_OPTIONS: RecurrenceType[] = [
-  "none", "daily", "weekdays", "weekends", "weekly", "biweekly", "monthly", "custom",
+  "daily", "weekdays", "weekends", "weekly", "custom", "none",
 ];
 
 const WEEK_DAYS_NL = ["Zo", "Ma", "Di", "Wo", "Do", "Vr", "Za"];
@@ -90,10 +91,14 @@ export default function TasksPage() {
   };
 
   const RECURRENCE_LABELS: Record<RecurrenceType, string> = {
-    none: tt("recurrence_none"), daily: tt("recurrence_daily"),
-    weekdays: tt("recurrence_weekdays"), weekends: tt("recurrence_weekends"),
-    weekly: tt("recurrence_weekly"), biweekly: tt("recurrence_biweekly"),
-    monthly: tt("recurrence_monthly"), custom: tt("recurrence_custom"),
+    none: lang === "nl" ? "Eenmalig" : "One-time",
+    daily: lang === "nl" ? "Dagelijks" : "Daily",
+    weekdays: lang === "nl" ? "Weekdagen" : "Weekdays",
+    weekends: lang === "nl" ? "Weekend" : "Weekends",
+    weekly: lang === "nl" ? "Wekelijks" : "Weekly",
+    biweekly: lang === "nl" ? "Om de 2 weken" : "Biweekly",
+    monthly: lang === "nl" ? "Maandelijks" : "Monthly",
+    custom: lang === "nl" ? "Specifieke dagen" : "Specific days",
   };
 
   const CATEGORIES: GoalCategory[] = ["fitness","money","consistency","school","mindset","relationships","creativity","health"];

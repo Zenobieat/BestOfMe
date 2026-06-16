@@ -4,7 +4,7 @@ import { useStore } from "@/lib/store";
 import { useT } from "@/lib/i18n";
 import { BottomNav } from "@/components/BottomNav";
 import { BomLogo } from "@/components/BomLogo";
-import { Pet3D } from "@/components/Pet3D";
+import { BuddyAvatar } from "@/components/BuddyAvatar";
 import { getTasksForDate, getDayCompletionRate } from "@/lib/tasks";
 import { format } from "date-fns";
 import { nl, enUS } from "date-fns/locale";
@@ -85,7 +85,7 @@ export default function DashboardPage() {
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               {/* Active pet mini */}
               {activePet ? (
-                <Link href="/pets"><Pet3D species={activePet.species} size={52} /></Link>
+                <Link href="/pets"><BuddyAvatar species={activePet.species} size={52} /></Link>
               ) : (
                 <Link href="/pets" style={{
                   width: 48, height: 48, borderRadius: 14,

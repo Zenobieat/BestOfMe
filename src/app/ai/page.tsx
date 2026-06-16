@@ -27,13 +27,17 @@ interface Message {
 const RECURRENCE_NL: Record<RecurrenceType, string> = {
   none: "Eenmalig", daily: "Dagelijks", weekdays: "Weekdagen",
   weekends: "Weekend", weekly: "Wekelijks", biweekly: "Om de 2 weken",
-  monthly: "Maandelijks", custom: "Aangepast",
+  monthly: "Maandelijks", custom: "Specifieke dagen",
 };
 const RECURRENCE_EN: Record<RecurrenceType, string> = {
   none: "One-time", daily: "Daily", weekdays: "Weekdays",
   weekends: "Weekends", weekly: "Weekly", biweekly: "Every 2 weeks",
-  monthly: "Monthly", custom: "Custom",
+  monthly: "Monthly", custom: "Specific days",
 };
+// Simplified options shown in UI
+const SIMPLE_REC_OPTIONS: RecurrenceType[] = ["daily", "weekdays", "weekends", "weekly", "custom", "none"];
+const WEEK_NL = ["Zo", "Ma", "Di", "Wo", "Do", "Vr", "Za"];
+const WEEK_EN = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 const PRIORITY_COLOR: Record<Priority, string> = {
   low: "var(--green)", medium: "var(--gold)", high: "var(--red)",
 };
@@ -59,8 +63,14 @@ function TaskCard({
 }) {
   const [expanded, setExpanded] = useState(false);
   const REC = lang === "nl" ? RECURRENCE_NL : RECURRENCE_EN;
-  const recOptions: RecurrenceType[] = ["daily", "weekdays", "weekends", "weekly", "biweekly", "monthly", "none"];
+  const weekLabels = lang === "nl" ? WEEK_NL : WEEK_EN;
   const priorities: Priority[] = ["low", "medium", "high"];
+
+  const toggleCustomDay = (d: number) => {
+    const cur = draft.customDays ?? [];
+    const next = cur.includes(d) ? cur.filter((x) => x !== d) : [...cur, d];
+    onUpdate({ customDays: next.length > 0 ? next.sort((a, b) => a - b) : undefined });
+  };
 
   return (
     <div style={{
@@ -127,8 +137,8 @@ function TaskCard({
           <p style={{ fontSize: 11, color: "var(--text-dim)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>
             {lang === "nl" ? "Herhaling" : "Recurrence"}
           </p>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 14 }}>
-            {recOptions.map((r) => (
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: draft.recurrenceType === "custom" ? 10 : 14 }}>
+            {SIMPLE_REC_OPTIONS.map((r) => (
               <button
                 key={r}
                 onClick={() => onUpdate({ recurrenceType: r })}
@@ -143,6 +153,28 @@ function TaskCard({
               </button>
             ))}
           </div>
+          {/* 7-day picker for custom */}
+          {draft.recurrenceType === "custom" && (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 5, marginBottom: 14 }}>
+              {weekLabels.map((d, i) => {
+                const sel = (draft.customDays ?? []).includes(i);
+                return (
+                  <button
+                    key={i}
+                    onClick={() => toggleCustomDay(i)}
+                    style={{
+                      padding: "8px 2px", borderRadius: 10, fontSize: 12, fontWeight: 700,
+                      border: `2px solid ${sel ? "var(--primary)" : "var(--border)"}`,
+                      background: sel ? "rgba(99,102,241,0.2)" : "transparent",
+                      color: sel ? "var(--primary-light)" : "var(--text-dim)",
+                    }}
+                  >
+                    {d}
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
           {/* Priority */}
           <p style={{ fontSize: 11, color: "var(--text-dim)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>

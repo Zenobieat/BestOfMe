@@ -18,6 +18,7 @@ interface AppState {
   user: UserProfile | null;
   tasks: Task[];
   completions: TaskCompletion[];
+  skips: { taskId: string; date: string }[];
   goals: Goal[];
   pets: Pet[];
   chatHistory: ChatMessage[];
@@ -36,6 +37,8 @@ interface AppState {
   completeTask: (taskId: string, date: string) => void;
   uncompleteTask: (taskId: string, date: string) => void;
   isTaskCompleted: (taskId: string, date: string) => boolean;
+  skipTask: (taskId: string, date: string) => void;
+  isTaskSkipped: (taskId: string, date: string) => boolean;
 
   // Goal actions
   addGoal: (goal: Omit<Goal, "id" | "createdAt" | "progress">) => void;
@@ -76,6 +79,7 @@ export const useStore = create<AppState>()(
       user: null,
       tasks: [],
       completions: [],
+      skips: [],
       goals: [],
       pets: [],
       chatHistory: [],
@@ -137,6 +141,7 @@ export const useStore = create<AppState>()(
         set((state) => ({
           tasks: state.tasks.filter((t) => t.id !== id),
           completions: state.completions.filter((c) => c.taskId !== id),
+          skips: state.skips.filter((s) => s.taskId !== id),
         })),
 
       completeTask: (taskId, date) => {
@@ -184,6 +189,15 @@ export const useStore = create<AppState>()(
 
       isTaskCompleted: (taskId, date) =>
         get().completions.some((c) => c.taskId === taskId && c.date === date),
+
+      skipTask: (taskId, date) => {
+        const { skips } = get();
+        if (skips.some((s) => s.taskId === taskId && s.date === date)) return;
+        set((state) => ({ skips: [...state.skips, { taskId, date }] }));
+      },
+
+      isTaskSkipped: (taskId, date) =>
+        get().skips.some((s) => s.taskId === taskId && s.date === date),
 
       addGoal: (goal) => {
         const newGoal: Goal = {
