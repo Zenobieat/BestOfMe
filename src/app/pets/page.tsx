@@ -8,6 +8,7 @@ import { Pet3D } from "@/components/Pet3D";
 import { BuddyAvatar } from "@/components/BuddyAvatar";
 import { BUDDIES_CATALOG, ACCESSORIES_CATALOG, TIER_COLORS } from "@/lib/catalog";
 import { Coins, Check, Lock, Pencil, ShoppingBag, PawPrint, Star } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 type Tab = "collection" | "shop";
 
@@ -23,6 +24,7 @@ export default function PetsPage() {
   const setActivePet = useStore((s) => s.setActivePet);
   const namePet = useStore((s) => s.namePet);
 
+  const router = useRouter();
   const lang = user?.language ?? "nl";
   const tt = useT(lang);
   const [tab, setTab] = useState<Tab>("collection");
@@ -121,11 +123,11 @@ export default function PetsPage() {
                 {pets.map((p) => (
                   <button
                     key={p.id}
-                    onClick={() => { setSelectedPetId(p.id); setActivePet(p.id); }}
+                    onClick={() => router.push(`/pets/${p.species}`)}
                     style={{
                       flexShrink: 0, width: 64, height: 64, borderRadius: 16,
-                      border: `2px solid ${selectedPetId === p.id ? "var(--primary)" : "var(--border)"}`,
-                      background: selectedPetId === p.id ? "rgba(99,102,241,0.15)" : "var(--card)",
+                      border: `2px solid ${user?.activePetId === p.id ? "var(--primary)" : "var(--border)"}`,
+                      background: user?.activePetId === p.id ? "rgba(99,102,241,0.15)" : "var(--card)",
                       display: "flex", alignItems: "center", justifyContent: "center",
                       overflow: "hidden",
                     }}
@@ -290,10 +292,12 @@ export default function PetsPage() {
                   <div
                     key={buddy.id}
                     className="card"
+                    onClick={() => router.push(`/pets/${buddy.id}`)}
                     style={{
                       padding: 14, textAlign: "center", position: "relative",
                       borderColor: isSpecial ? "rgba(255,171,145,0.4)" : undefined,
                       background: isSpecial ? "linear-gradient(135deg, rgba(255,87,34,0.06), var(--card))" : undefined,
+                      cursor: "pointer",
                     }}
                   >
                     {/* Tier badge */}
@@ -342,7 +346,7 @@ export default function PetsPage() {
 
                     {!owned && (
                       <button
-                        onClick={() => handleBuyPet(buddy.id)}
+                        onClick={(e) => { e.stopPropagation(); handleBuyPet(buddy.id); }}
                         disabled={!canAfford}
                         style={{
                           width: "100%", padding: "9px",

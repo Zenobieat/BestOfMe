@@ -10,7 +10,7 @@ import {
   addMonths, subMonths, isSameDay, isToday,
 } from "date-fns";
 import { nl, enUS } from "date-fns/locale";
-import { ChevronLeft, ChevronRight, CheckCircle, X, Plus, CalendarDays, Coins } from "lucide-react";
+import { ChevronLeft, ChevronRight, CheckCircle, X, Plus, CalendarDays, Coins, Lock } from "lucide-react";
 import Link from "next/link";
 
 const PRIORITY_COLOR: Record<string, string> = {
@@ -31,6 +31,7 @@ export default function CalendarPage() {
   const lang = user?.language ?? "nl";
   const tt = useT(lang);
   const locale = lang === "nl" ? nl : enUS;
+  const today = format(new Date(), "yyyy-MM-dd");
 
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -54,6 +55,7 @@ export default function CalendarPage() {
   const closeSheet = () => setSheetOpen(false);
 
   const selDateStr = selectedDate ? format(selectedDate, "yyyy-MM-dd") : "";
+  const isFutureDate = selDateStr > today;
   const selTasks = selectedDate ? getTasksForDate(tasks, selDateStr) : [];
   const selDone = selTasks.filter((t) => isTaskCompleted(t.id, selDateStr)).length;
   const selActive = selTasks.filter((t) => !isTaskSkipped(t.id, selDateStr));
@@ -241,10 +243,19 @@ export default function CalendarPage() {
               <div>
                 <p style={{ fontSize: 12, color: "var(--text-faint)", textTransform: "capitalize", marginBottom: 2 }}>
                   {format(selectedDate, "EEEE", { locale })}
+                  {isFutureDate && (
+                    <span style={{
+                      marginLeft: 8, fontSize: 10, fontWeight: 700, padding: "2px 7px",
+                      borderRadius: 10, background: "rgba(99,102,241,0.12)", color: "var(--primary-light)",
+                    }}>
+                      <Lock size={8} style={{ display: "inline", verticalAlign: "middle", marginRight: 3 }} />
+                      {lang === "nl" ? "Toekomst" : "Future"}
+                    </span>
+                  )}
                 </p>
                 <h3 style={{ fontSize: 20, fontWeight: 800 }}>
                   {format(selectedDate, "d MMMM", { locale })}
-                  {selTasks.length > 0 && (
+                  {selTasks.length > 0 && !isFutureDate && (
                     <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-dim)", marginLeft: 8 }}>
                       {selDone}/{selActive.length}
                     </span>
@@ -328,19 +339,21 @@ export default function CalendarPage() {
                         background: skipped ? "var(--border)" : PRIORITY_COLOR[task.priority],
                       }} />
 
-                      {/* Checkbox */}
+                      {/* Checkbox — locked for future dates */}
                       <button
-                        onClick={() => !skipped && (done ? uncompleteTask(task.id, selDateStr) : completeTask(task.id, selDateStr))}
-                        disabled={skipped}
+                        onClick={() => !skipped && !isFutureDate && (done ? uncompleteTask(task.id, selDateStr) : completeTask(task.id, selDateStr))}
+                        disabled={skipped || isFutureDate}
                         style={{
                           width: 26, height: 26, borderRadius: "50%", flexShrink: 0,
-                          border: `2px solid ${done ? "var(--green)" : "var(--border-light)"}`,
+                          border: `2px solid ${done ? "var(--green)" : isFutureDate ? "var(--border)" : "var(--border-light)"}`,
                           background: done ? "var(--green)" : "transparent",
                           display: "flex", alignItems: "center", justifyContent: "center",
-                          cursor: skipped ? "default" : "pointer", transition: "all 0.2s",
+                          cursor: (skipped || isFutureDate) ? "default" : "pointer", transition: "all 0.2s",
+                          opacity: isFutureDate ? 0.5 : 1,
                         }}
                       >
                         {done && <CheckCircle size={15} color="white" strokeWidth={3} />}
+                        {!done && isFutureDate && <Lock size={11} color="var(--text-faint)" />}
                       </button>
 
                       {/* Text */}
@@ -384,8 +397,8 @@ export default function CalendarPage() {
                         </div>
                       )}
 
-                      {/* Skip button */}
-                      {!done && !skipped && (
+                      {/* Skip button — hidden for future dates */}
+                      {!done && !skipped && !isFutureDate && (
                         <button
                           onClick={() => skipTask(task.id, selDateStr)}
                           style={{

@@ -9,7 +9,7 @@ const NAV_ITEMS = [
   { href: "/dashboard", Icon: Home,        label: { nl: "Home",     en: "Home" } },
   { href: "/calendar",  Icon: CalendarDays, label: { nl: "Kalender", en: "Calendar" } },
   { href: "/tasks",     Icon: CheckSquare,  label: { nl: "Taken",    en: "Tasks" } },
-  { href: "/pets",      Icon: PawPrint,     label: { nl: "Dieren",   en: "Pets" } },
+  { href: "/pets",      Icon: PawPrint,     label: { nl: "Buddies",  en: "Buddies" } },
   { href: "/ai",        Icon: Bot,          label: { nl: "Coach",    en: "Coach" } },
   { href: "/settings",  Icon: Settings,     label: { nl: "Profiel",  en: "Profile" } },
 ];
