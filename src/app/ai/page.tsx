@@ -294,7 +294,7 @@ export default function AIPage() {
   const isEmpty = messages.length === 0;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100dvh", background: "var(--bg)" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "calc(100dvh - 65px)", background: "var(--bg)" }}>
       {/* Header */}
       <div className="safe-top glass" style={{ padding: "12px 20px 14px", flexShrink: 0, borderBottom: "1px solid var(--border)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -467,7 +467,7 @@ export default function AIPage() {
       </div>
 
       {/* Input bar */}
-      <div className="glass safe-bottom" style={{
+      <div className="glass" style={{
         padding: "10px 14px",
         borderTop: "1px solid var(--border)",
         flexShrink: 0,
