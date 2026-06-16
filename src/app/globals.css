@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
-:root {
+/* ── Dark theme (default) ── */
+:root, [data-theme="dark"] {
   --bg: #070B14;
   --surface: #0F1520;
   --card: #141C2E;
@@ -19,6 +20,76 @@
   --text: #F1F5F9;
   --text-dim: #94A3B8;
   --text-faint: #475569;
+  --shadow: rgba(0,0,0,0.4);
+}
+
+/* ── Light theme (wit + groen) ── */
+[data-theme="light"] {
+  --bg: #F0FDF4;
+  --surface: #FFFFFF;
+  --card: #FFFFFF;
+  --card-hover: #F7FFF9;
+  --border: #D1FAE5;
+  --border-light: #A7F3D0;
+  --primary: #16A34A;
+  --primary-light: #22C55E;
+  --primary-dark: #15803D;
+  --secondary: #059669;
+  --gold: #D97706;
+  --gold-dim: #B45309;
+  --green: #16A34A;
+  --red: #DC2626;
+  --blue: #2563EB;
+  --text: #0F172A;
+  --text-dim: #475569;
+  --text-faint: #94A3B8;
+  --shadow: rgba(0,0,0,0.08);
+}
+
+[data-theme="light"] .glass {
+  background: rgba(255,255,255,0.88);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid var(--border);
+}
+
+[data-theme="light"] .gradient-text {
+  background: linear-gradient(135deg, #16A34A, #22C55E, #059669);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+[data-theme="light"] .btn-primary {
+  background: linear-gradient(135deg, #16A34A, #15803D);
+  border-color: rgba(22,163,74,0.3);
+  box-shadow: 0 4px 20px rgba(22,163,74,0.25);
+}
+
+[data-theme="light"] .card {
+  box-shadow: 0 1px 4px var(--shadow);
+}
+
+[data-theme="light"] input,
+[data-theme="light"] textarea,
+[data-theme="light"] select {
+  background: #F8FAFC;
+  border-color: var(--border);
+  color: var(--text);
+}
+
+[data-theme="light"] .progress-fill {
+  background: linear-gradient(90deg, #16A34A, #22C55E);
+}
+
+[data-theme="light"] .chip-primary {
+  background: rgba(22,163,74,0.1);
+  border-color: rgba(22,163,74,0.25);
+  color: var(--primary);
+}
+
+[data-theme="light"] .chip-gold {
+  color: var(--gold-dim);
 }
 
 *, *::before, *::after {

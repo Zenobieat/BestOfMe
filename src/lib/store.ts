@@ -60,6 +60,10 @@ interface AppState {
   // Calendar
   setSelectedDate: (date: string) => void;
 
+  // Theme
+  theme: "dark" | "light";
+  setTheme: (theme: "dark" | "light") => void;
+
   // Streak
   checkAndUpdateStreak: () => void;
 }
@@ -84,6 +88,7 @@ export const useStore = create<AppState>()(
       pets: [],
       chatHistory: [],
       selectedDate: format(new Date(), "yyyy-MM-dd"),
+      theme: "dark" as "dark" | "light",
 
       initUser: (name, language, goalCategories) => {
         const user: UserProfile = {
@@ -311,6 +316,8 @@ export const useStore = create<AppState>()(
       clearChat: () => set({ chatHistory: [] }),
 
       setSelectedDate: (date) => set({ selectedDate: date }),
+
+      setTheme: (theme) => set({ theme }),
 
       checkAndUpdateStreak: () => {
         const { user, completions } = get();

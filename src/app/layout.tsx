@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { ThemeWrapper } from "@/components/ThemeWrapper";
 
 export const metadata: Metadata = {
   title: "BestOfMe",
@@ -36,7 +37,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
       </head>
-      <body className="h-full">{children}</body>
+      <body className="h-full"><ThemeWrapper>{children}</ThemeWrapper></body>
     </html>
   );
 }
