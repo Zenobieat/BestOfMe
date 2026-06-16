@@ -3,66 +3,60 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useStore } from "@/lib/store";
-import { useT } from "@/lib/i18n";
+import { Home, CalendarDays, CheckSquare, PawPrint, Bot, Settings } from "lucide-react";
 
 const NAV_ITEMS = [
-  { href: "/dashboard", icon: "🏠", key: "dashboard" as const },
-  { href: "/calendar", icon: "📅", key: "calendar" as const },
-  { href: "/tasks", icon: "✅", key: "tasks" as const },
-  { href: "/pets", icon: "🐾", key: "pets" as const },
-  { href: "/ai", icon: "🤖", key: "ai_coach" as const },
-  { href: "/settings", icon: "⚙️", key: "settings" as const },
+  { href: "/dashboard", Icon: Home,        label: { nl: "Home",     en: "Home" } },
+  { href: "/calendar",  Icon: CalendarDays, label: { nl: "Kalender", en: "Calendar" } },
+  { href: "/tasks",     Icon: CheckSquare,  label: { nl: "Taken",    en: "Tasks" } },
+  { href: "/pets",      Icon: PawPrint,     label: { nl: "Dieren",   en: "Pets" } },
+  { href: "/ai",        Icon: Bot,          label: { nl: "Coach",    en: "Coach" } },
+  { href: "/settings",  Icon: Settings,     label: { nl: "Profiel",  en: "Profile" } },
 ];
 
 export function BottomNav() {
   const pathname = usePathname();
-  const user = useStore((s) => s.user);
-  const lang = user?.language ?? "nl";
-  const tt = useT(lang);
+  const lang = useStore((s) => s.user?.language ?? "nl");
 
   return (
     <nav
       className="glass safe-bottom"
       style={{
-        position: "fixed",
-        bottom: 0,
-        left: 0,
-        right: 0,
-        display: "flex",
-        alignItems: "center",
+        position: "fixed", bottom: 0, left: 0, right: 0,
+        display: "flex", alignItems: "stretch",
         justifyContent: "space-around",
-        padding: "8px 0 4px",
+        padding: "6px 0 2px",
         zIndex: 100,
-        borderTop: "1px solid rgba(255,255,255,0.06)",
+        borderTop: "1px solid var(--border)",
       }}
     >
-      {NAV_ITEMS.map(({ href, icon, key }) => {
+      {NAV_ITEMS.map(({ href, Icon, label }) => {
         const active = pathname === href;
         return (
           <Link
             key={href}
             href={href}
             style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: 2,
-              textDecoration: "none",
-              padding: "6px 12px",
-              borderRadius: 12,
-              transition: "all 0.2s",
-              background: active ? "rgba(124,58,237,0.2)" : "transparent",
+              flex: 1,
+              display: "flex", flexDirection: "column",
+              alignItems: "center", justifyContent: "center",
+              gap: 3, padding: "6px 4px",
+              borderRadius: 10,
+              color: active ? "var(--primary-light)" : "var(--text-faint)",
+              transition: "color 0.2s",
+              position: "relative",
             }}
           >
-            <span style={{ fontSize: 22 }}>{icon}</span>
-            <span
-              style={{
-                fontSize: 10,
-                color: active ? "var(--bom-purple-light)" : "var(--bom-muted)",
-                fontWeight: active ? 600 : 400,
-              }}
-            >
-              {tt(key)}
+            {active && (
+              <div style={{
+                position: "absolute", top: 0, left: "20%", right: "20%", height: 2,
+                background: "var(--primary)",
+                borderRadius: "0 0 2px 2px",
+              }} />
+            )}
+            <Icon size={20} strokeWidth={active ? 2.5 : 1.8} />
+            <span style={{ fontSize: 9, fontWeight: active ? 700 : 500, letterSpacing: "0.02em" }}>
+              {label[lang]}
             </span>
           </Link>
         );

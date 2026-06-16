@@ -1,7 +1,5 @@
 import { NextRequest } from "next/server";
-
-// Built-in AI coach — no external API needed, fully free
-// Smart rule-based system with SMART goal support and motivational coaching
+import { parseTaskFromText } from "@/lib/nlp";
 
 type Lang = "nl" | "en";
 
@@ -14,282 +12,249 @@ const RULES: Rule[] = [
   {
     keywords: ["smart", "doel stellen", "set goal", "goal setting", "doelen stellen"],
     response: {
-      nl: `Laten we een SMART doel opstellen! 🎯
+      nl: `Laten we een SMART doel opstellen.
 
-**S — Specifiek:** Wat wil je precies bereiken? (niet "fitter worden" maar "3x per week 30 min sporten")
+S — Specifiek: Wat wil je precies bereiken? Niet "fitter worden" maar "3x per week 30 min sporten".
 
-**M — Meetbaar:** Hoe meet je je voortgang? (kg, km, punten, dagen)
+M — Meetbaar: Hoe meet je je voortgang? Kilo, km, punten, dagen.
 
-**A — Haalbaar:** Is het realistisch met je huidige leven?
+A — Haalbaar: Is het realistisch met je huidige leven?
 
-**R — Relevant:** Waarom is dit doel belangrijk voor jou?
+R — Relevant: Waarom is dit doel belangrijk voor jou?
 
-**T — Tijdgebonden:** Wanneer wil je dit bereiken?
+T — Tijdgebonden: Wanneer wil je dit bereiken?
 
-Vertel me meer over jouw doel en ik help je het SMART te maken! 💪`,
-      en: `Let's create a SMART goal! 🎯
+Zeg me gewoon je doel — ik stel het automatisch in als taak.`,
+      en: `Let's create a SMART goal.
 
-**S — Specific:** What exactly do you want to achieve? (not "get fit" but "work out 3x a week for 30 min")
+S — Specific: What exactly do you want to achieve? Not "get fit" but "work out 3x a week for 30 min".
 
-**M — Measurable:** How will you track progress? (kg, km, points, days)
+M — Measurable: How will you track progress? kg, km, points, days.
 
-**A — Achievable:** Is it realistic with your current life?
+A — Achievable: Is it realistic with your current life?
 
-**R — Relevant:** Why does this goal matter to you?
+R — Relevant: Why does this goal matter to you?
 
-**T — Time-bound:** When do you want to achieve this?
+T — Time-bound: When do you want to achieve this?
 
-Tell me more about your goal and I'll help you make it SMART! 💪`,
+Just tell me your goal — I'll automatically add it as a task.`,
     },
   },
   {
     keywords: ["gemotiveerd", "motivatie", "motivated", "motivation", "motiveren"],
     response: {
-      nl: `Motivatie komt en gaat — **discipline blijft**. 🔥
+      nl: `Motivatie komt en gaat. Discipline blijft.
 
-Hier zijn 3 bewezen tips:
+Drie dingen die werken:
 
-1. **Maak het klein** — begin met 2 minuten. Serieus. 2 minuten sporten is beter dan 0 minuten.
-2. **Koppel het aan iets** — na je koffie → 10 push-ups. Routine creëert automatisme.
-3. **Track je streak** — jij hebt al een streak bezig. Breek hem niet! Dat gevoel is krachtiger dan motivatie.
+1. Maak het klein. Begin met 2 minuten. 2 minuten sporten is beter dan nul minuten.
+2. Koppel het aan iets. Na je koffie — 10 push-ups. Routine creëert automatisme.
+3. Track je streak. Breek hem niet. Dat gevoel is krachtiger dan motivatie.
 
-Je hoeft je niet goed te voelen om te beginnen. Begin gewoon, het gevoel volgt.`,
-      en: `Motivation comes and goes — **discipline stays**. 🔥
+Je hoeft je niet goed te voelen om te beginnen. Begin gewoon.`,
+      en: `Motivation comes and goes. Discipline stays.
 
-Here are 3 proven tips:
+Three things that work:
 
-1. **Make it tiny** — start with 2 minutes. Seriously. 2 minutes of exercise beats 0 minutes.
-2. **Attach it to something** — after your coffee → 10 push-ups. Routine creates automatism.
-3. **Track your streak** — you already have a streak going. Don't break it! That feeling is more powerful than motivation.
+1. Make it tiny. Start with 2 minutes. 2 minutes of exercise beats 0 minutes.
+2. Attach it to something. After your coffee — 10 push-ups. Routine creates automatism.
+3. Track your streak. Don't break it. That feeling is more powerful than motivation.
 
-You don't need to feel good to start. Just start, the feeling follows.`,
+You don't need to feel good to start. Just start.`,
     },
   },
   {
-    keywords: ["fitness", "sporten", "workout", "gym", "training", "sport"],
+    keywords: ["fitness", "sporten", "workout", "gym", "training", "push-up", "pushup", "squat", "sit-up"],
     response: {
-      nl: `Fitness SMART aanpakken 💪
+      nl: `Fitness werkt als je consistent bent, niet als je hard traint.
 
-**Beginner routine (3x/week):**
-- Ma: 20 min wandelen + 3x10 push-ups
-- Wo: 20 min wandelen + 3x10 squats
-- Vr: 30 min actieve rust (fietsen, zwemmen)
+Beginner routine 3x per week:
+- Maandag: 20 min wandelen + 3 sets push-ups
+- Woensdag: 20 min wandelen + 3 sets squats
+- Vrijdag: 30 min actieve rust
 
-**Sleutel:** Consistentie > Intensiteit. Elke week een klein beetje meer.
+Sleutel: elke week iets meer dan de week ervoor. Niet springen naar het maximum.
 
-Tip: Voeg je workouts toe als taak in de app met hoge prioriteit → +20 BOM-Coins per sessie! 🎯`,
-      en: `Fitness the SMART way 💪
+Zeg me je oefening en ik zet hem in je kalender. Bijvoorbeeld: "Ik wil elke avond 25 push-ups doen".`,
+      en: `Fitness works when you're consistent, not when you train hard.
 
-**Beginner routine (3x/week):**
-- Mon: 20 min walk + 3x10 push-ups
-- Wed: 20 min walk + 3x10 squats
-- Fri: 30 min active rest (cycling, swimming)
+Beginner routine 3x per week:
+- Monday: 20 min walk + 3 sets push-ups
+- Wednesday: 20 min walk + 3 sets squats
+- Friday: 30 min active rest
 
-**Key:** Consistency > Intensity. A little more each week.
+Key: a little more each week. Don't jump to the maximum.
 
-Tip: Add your workouts as tasks in the app with high priority → +20 BOM-Coins per session! 🎯`,
+Tell me your exercise and I'll add it to your calendar. For example: "I want to do 25 push-ups every evening".`,
     },
   },
   {
-    keywords: ["geld", "money", "financiën", "finance", "sparen", "save", "budget", "inkomen", "income"],
+    keywords: ["geld", "money", "financiën", "finance", "sparen", "save", "budget"],
     response: {
-      nl: `Financiële discipline opbouwen 💰
+      nl: `50/30/20 — de eenvoudigste budgetregel.
 
-**De 50/30/20 regel:**
-- 50% voor vaste lasten (huur, eten, transport)
-- 30% voor wensen (uitgaan, kleren, fun)
-- 20% voor sparen & investeren
+50% vaste lasten (huur, eten, transport)
+30% wensen (uitgaan, kleren)
+20% sparen en investeren
 
-**Direct actie:**
-1. Noteer vandaag elke uitgave (gewoon in Notes of een app)
-2. Stel een maandelijks spaardoel in (start klein: €50/maand)
-3. Automatiseer het — zet geld weg op spaardag
+Direct actie: noteer vandaag elke uitgave. Alles. Na een week zie je het patroon.
 
-Kleine gewoonten × 365 dagen = groot resultaat. 📈`,
-      en: `Building financial discipline 💰
+Wil je dagelijks je budget bijhouden als taak instellen?`,
+      en: `50/30/20 — the simplest budgeting rule.
 
-**The 50/30/20 rule:**
-- 50% for fixed costs (rent, food, transport)
-- 30% for wants (going out, clothes, fun)
-- 20% for saving & investing
+50% fixed costs (rent, food, transport)
+30% wants (going out, clothes)
+20% saving and investing
 
-**Immediate action:**
-1. Track every expense today (just in Notes or an app)
-2. Set a monthly savings goal (start small: €50/month)
-3. Automate it — transfer money on payday
+Immediate action: track every expense today. Everything. After one week you'll see the pattern.
 
-Small habits × 365 days = big results. 📈`,
+Want me to set up a daily budget tracking task?`,
     },
   },
   {
-    keywords: ["school", "studie", "study", "examen", "exam", "leren", "learn", "resultaten"],
+    keywords: ["school", "studie", "study", "examen", "exam", "leren", "resultaten"],
     response: {
-      nl: `School aanpakken als een pro 📚
+      nl: `Pomodoro techniek — de meest bewezen studiemethode.
 
-**De Pomodoro techniek:**
-- 25 min gefocust studeren
-- 5 min pauze
-- Na 4 rondes: 20 min grote pauze
+25 minuten focussen, dan 5 minuten pauze. Na 4 rondes een grote pauze van 20 minuten.
 
-**Slim studeren:**
-1. Actief leren > passief lezen (schrijf samen, maak oefenvragen)
-2. Spaced repetition — herhaal stof op dag 1, 3, 7, 21
-3. Slaap is ook studeren — je hersenen consolideren 's nachts
+Slim studeren:
+- Actief leren werkt beter dan passief lezen. Schrijf samen, maak oefenvragen.
+- Spaced repetition: herhaal op dag 1, 3, 7, 21.
+- Slaap is ook studeren. Je hersenen consolideren 's nachts.
 
-Maak van elke studiesessie een taak in de app! 🎯`,
-      en: `Crushing school like a pro 📚
+Wil je studiesessies als dagelijkse taak instellen?`,
+      en: `Pomodoro technique — the most proven study method.
 
-**The Pomodoro technique:**
-- 25 min focused studying
-- 5 min break
-- After 4 rounds: 20 min long break
+25 minutes focused, then 5 minute break. After 4 rounds a 20 minute long break.
 
-**Smart studying:**
-1. Active learning > passive reading (summarize, make practice questions)
-2. Spaced repetition — review material on day 1, 3, 7, 21
-3. Sleep is studying too — your brain consolidates at night
+Smart studying:
+- Active learning beats passive reading. Summarize, make practice questions.
+- Spaced repetition: review on day 1, 3, 7, 21.
+- Sleep is studying too. Your brain consolidates at night.
 
-Add each study session as a task in the app! 🎯`,
+Want me to set up daily study sessions as a task?`,
     },
   },
   {
-    keywords: ["routine", "dag", "day", "ochend", "morning", "schema", "schedule", "gewoonten", "habits"],
+    keywords: ["routine", "dag", "ochtend", "morning", "schema", "schedule", "gewoonten", "habits"],
     response: {
-      nl: `De perfecte ochtend routine ☀️ (30 min)
+      nl: `Een ochtend routine in 20 minuten.
 
-**5:00-5:05** — Water drinken, geen telefoon
-**5:05-5:15** — 10 min bewegen (stretchen, push-ups)
-**5:15-5:20** — 3 dingen opschrijven waar je dankbaar voor bent
-**5:20-5:30** — Je belangrijkste taak van die dag plannen
+Stap 1 (5 min): Water drinken, geen telefoon.
+Stap 2 (10 min): Bewegen. Stretch, push-ups, wandelen.
+Stap 3 (5 min): Schrijf één ding op dat je vandaag wil doen.
 
-**Waarom ochtend?** Wilskracht is 's ochtends het sterkst. Gebruik het voor je moeilijkste taak.
+Wilskracht is het sterkst 's ochtends. Gebruik het voor je moeilijkste taak.
 
-Zet dit als herhalende dagelijkse taak in de app! 💪`,
-      en: `The perfect morning routine ☀️ (30 min)
+Wil ik een ochtend routine voor je instellen als dagelijkse taak?`,
+      en: `A morning routine in 20 minutes.
 
-**5:00-5:05** — Drink water, no phone
-**5:05-5:15** — 10 min movement (stretching, push-ups)
-**5:15-5:20** — Write 3 things you're grateful for
-**5:20-5:30** — Plan your most important task of the day
+Step 1 (5 min): Drink water, no phone.
+Step 2 (10 min): Move. Stretch, push-ups, walk.
+Step 3 (5 min): Write down the one thing you want to do today.
 
-**Why morning?** Willpower is strongest in the morning. Use it for your hardest task.
+Willpower is strongest in the morning. Use it for your hardest task.
 
-Set this as a recurring daily task in the app! 💪`,
+Want me to set up a morning routine as a daily task for you?`,
     },
   },
   {
-    keywords: ["consistent", "consistency", "discipline", "gewoontes", "habits", "volhouden", "keep going"],
+    keywords: ["consistent", "consistency", "discipline", "volhouden", "keep going", "bijhouden"],
     response: {
-      nl: `Consistentie is jouw superkracht 🔥
+      nl: `De 2-dag regel: mis nooit 2 dagen op rij.
 
-**De 2-dag regel:** Mis nooit 2 dagen op rij. Eén dag missen kan. Twee dagen wordt een gewoonte.
+Eén dag missen kan. Twee dagen wordt een patroon. Drie dagen wordt de nieuwe norm.
 
-**Identiteit > doelen:** Zeg niet "ik probeer te sporten". Zeg "ik ben iemand die sport". Kleine woorden, groot verschil.
+Identiteit boven doelen: zeg niet "ik probeer te sporten". Zeg "ik ben iemand die sport". Kleine woorden, groot verschil.
 
-**Systeem > motivatie:** Leg je sportkleren 's avonds klaar. Leg je boek op je kussen. Maak het onmogelijk om te vergeten.
+Jouw streak in BestOfMe is je bewijs. Elke dag die je aanvinkt bevestigt wie je bent.`,
+      en: `The 2-day rule: never miss 2 days in a row.
 
-Je streak in BestOfMe is je bewijs. Elke dag die je aanvinkt, bewijst je identiteit aan jezelf. 💪`,
-      en: `Consistency is your superpower 🔥
+Missing one day is fine. Two days becomes a pattern. Three days becomes the new norm.
 
-**The 2-day rule:** Never miss 2 days in a row. Missing one day is okay. Two days becomes a habit.
+Identity over goals: don't say "I'm trying to work out." Say "I'm someone who works out." Small words, big difference.
 
-**Identity > goals:** Don't say "I'm trying to work out." Say "I'm someone who works out." Small words, big difference.
-
-**Systems > motivation:** Lay out your workout clothes the night before. Put your book on your pillow. Make it impossible to forget.
-
-Your streak in BestOfMe is your proof. Every day you check off proves your identity to yourself. 💪`,
+Your streak in BestOfMe is your proof. Every day you check off confirms who you are.`,
     },
   },
   {
-    keywords: ["stress", "angst", "anxiety", "overwhelmed", "overweldigd", "rust", "calm", "mindset"],
+    keywords: ["stress", "angst", "anxiety", "overweldigd", "overwhelmed", "rust", "mindset"],
     response: {
-      nl: `Even ademen 🧘
+      nl: `Wanneer alles te veel wordt.
 
-Wanneer alles te veel wordt:
+Box breathing — 60 seconden:
+Inademen 4 sec. Vasthouden 4 sec. Uitademen 4 sec. Vasthouden 4 sec. Vier keer herhalen.
 
-**Box breathing (60 sec):**
-- Inademen 4 sec
-- Vasthouden 4 sec
-- Uitademen 4 sec
-- Vasthouden 4 sec
-- Herhaal 4x
+Dan: schrijf alles op wat je bezighoudt. Je hoofd is geen opbergplaats. Papier is goedkoper dan stress.
 
-**Dan:** schrijf letterlijk op wat je stress geeft. Alles eruit. Je hoofd is geen opbergplaats.
+Kies dan één ding. Het kleinste eerste stapje. Dat is alles.`,
+      en: `When everything feels like too much.
 
-**Kies dan 1 ding** — wat is het kleinste eerste stapje dat je nu kunt zetten?
+Box breathing — 60 seconds:
+Inhale 4 sec. Hold 4 sec. Exhale 4 sec. Hold 4 sec. Repeat four times.
 
-Groot probleem = veel kleine stappen. Begin met stap 1.`,
-      en: `Let's breathe for a moment 🧘
+Then: write down everything on your mind. Your head is not storage. Paper is cheaper than stress.
 
-When everything feels like too much:
-
-**Box breathing (60 sec):**
-- Inhale 4 sec
-- Hold 4 sec
-- Exhale 4 sec
-- Hold 4 sec
-- Repeat 4x
-
-**Then:** write down everything stressing you. Get it all out. Your head is not storage.
-
-**Then pick 1 thing** — what's the smallest first step you can take right now?
-
-Big problem = many small steps. Start with step 1.`,
+Then pick one thing. The smallest first step. That's all.`,
     },
   },
 ];
 
 const FALLBACK: Record<Lang, string[]> = {
   nl: [
-    "Goede vraag! 💡 De sleutel tot succes is simpel: kleine acties, elke dag. Wat is één ding dat je vandaag kunt doen om dichter bij je doel te komen?",
-    "Interessant! Weet je wat ik heb geleerd? De mensen die het verst komen zijn niet de meest getalenteerden — ze zijn het meest consistent. Blijf gewoon gaan. 🔥",
-    "Dat begrijp ik! Onthoud: vooruitgang is niet altijd zichtbaar, maar elke stap telt. Wat is je volgende concrete actie?",
-    "Goede mindset! Het feit dat je deze vraag stelt betekent al dat je bezig bent. Dat is 90% van het werk. 💪 Vertel me meer, dan help ik je verder.",
+    "Goeie vraag. De sleutel tot succes is eenvoudig: kleine acties, elke dag. Wat is één ding dat je vandaag kunt doen om dichter bij je doel te komen?",
+    "Interessant. Weet je wat ik heb geleerd? De mensen die het verst komen zijn niet de meest getalenteerden — ze zijn het meest consistent. Wat is jouw volgende stap?",
+    "Begrijp ik. Onthoud dit: vooruitgang is niet altijd zichtbaar, maar elke stap telt. Wat is je volgende concrete actie?",
   ],
   en: [
-    "Great question! 💡 The key to success is simple: small actions, every day. What's one thing you can do today to get closer to your goal?",
-    "Interesting! You know what I've learned? The people who go furthest aren't the most talented — they're the most consistent. Just keep going. 🔥",
-    "I get that! Remember: progress isn't always visible, but every step counts. What's your next concrete action?",
-    "Good mindset! The fact that you're asking this question means you're already working on it. That's 90% of the work. 💪 Tell me more and I'll help you further.",
+    "Good question. The key to success is simple: small actions, every day. What is one thing you can do today to get closer to your goal?",
+    "Interesting. You know what I've learned? The people who go furthest aren't the most talented — they're the most consistent. What is your next step?",
+    "I understand. Remember this: progress isn't always visible, but every step counts. What's your next concrete action?",
   ],
 };
 
 function detectLanguage(text: string): Lang {
-  const dutchWords = ["ik", "de", "het", "een", "en", "van", "in", "is", "dat", "op", "te", "wat", "hoe", "kan", "wil", "mijn", "voor", "met", "zijn", "maar"];
+  const dutch = ["ik", "de", "het", "een", "en", "van", "in", "is", "dat", "op", "te", "wat", "hoe", "kan", "wil", "mijn", "voor", "met", "zijn", "maar", "wil", "weet"];
   const words = text.toLowerCase().split(/\s+/);
-  const dutchCount = words.filter((w) => dutchWords.includes(w)).length;
-  return dutchCount >= 1 ? "nl" : "en";
+  return words.filter((w) => dutch.includes(w)).length >= 1 ? "nl" : "en";
 }
 
-function findBestResponse(userMsg: string, historyLang?: Lang): { response: string; lang: Lang } {
+function findResponse(userMsg: string, lang: Lang): string {
   const lower = userMsg.toLowerCase();
-  const lang: Lang = historyLang ?? detectLanguage(userMsg);
-
   for (const rule of RULES) {
     if (rule.keywords.some((kw) => lower.includes(kw))) {
-      return { response: rule.response[lang], lang };
+      return rule.response[lang];
     }
   }
-
-  const fallbacks = FALLBACK[lang];
-  return {
-    response: fallbacks[Math.floor(Math.random() * fallbacks.length)],
-    lang,
-  };
+  const arr = FALLBACK[lang];
+  return arr[Math.floor(Math.random() * arr.length)];
 }
 
 export async function POST(req: NextRequest) {
   try {
     const { messages, language } = await req.json();
-    const lastUserMsg = messages.filter((m: { role: string }) => m.role === "user").pop()?.content ?? "";
-    const lang: Lang = (language as Lang) ?? detectLanguage(lastUserMsg);
+    const lastMsg = messages.filter((m: { role: string }) => m.role === "user").pop()?.content ?? "";
+    const lang: Lang = (language as Lang) ?? detectLanguage(lastMsg);
 
-    const { response } = findBestResponse(lastUserMsg, lang);
+    // Check if user is describing a task to add
+    const nlpResult = parseTaskFromText(lastMsg);
 
-    // Small delay to feel more natural
-    await new Promise((r) => setTimeout(r, 400 + Math.random() * 600));
+    let responseText = findResponse(lastMsg, lang);
+    let taskSuggestion = null;
 
-    return Response.json({ message: response });
+    if (nlpResult.task && nlpResult.confidence > 0.7) {
+      taskSuggestion = nlpResult.task;
+      const taskLabel =
+        lang === "nl"
+          ? `\n\nIk heb een taak herkend: "${nlpResult.task.title}". Wil je dat ik deze toevoeg aan je kalender?`
+          : `\n\nI detected a task: "${nlpResult.task.title}". Want me to add this to your calendar?`;
+      responseText = findResponse(lastMsg, lang) + taskLabel;
+    }
+
+    await new Promise((r) => setTimeout(r, 300 + Math.random() * 400));
+
+    return Response.json({ message: responseText, taskSuggestion });
   } catch {
     return Response.json({ message: "Probeer het opnieuw / Try again." }, { status: 500 });
   }

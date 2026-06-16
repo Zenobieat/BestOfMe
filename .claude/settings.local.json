@@ -9,7 +9,10 @@
       "Bash(ls ~/.nvm/ 2>/dev/null; ls ~/homebrew/bin/ 2>/dev/null | grep node; find /Users/rune -name \"node\" -type f 2>/dev/null | head -5; ls /usr/bin/node 2>/dev/null)",
       "Bash(mkdir -p /Users/rune/.claude/projects/-Users-rune-BestOfMe/memory/)",
       "Bash(git add *)",
-      "Bash(git commit *)"
+      "Bash(git commit *)",
+      "Bash(git remote *)",
+      "Bash(git branch *)",
+      "Bash(git push *)"
     ]
   }
 }
