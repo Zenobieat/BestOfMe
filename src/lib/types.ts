@@ -64,7 +64,7 @@ export interface Goal {
   progress: number; // 0-100
 }
 
-export type PetSpecies = "cat" | "dog" | "rabbit" | "dragon" | "fox" | "owl" | "bear" | "panda";
+export type PetSpecies = string; // expanded to 100+ buddy types
 
 export type AccessoryType = "hat" | "bow" | "glasses" | "scarf" | "crown";
 

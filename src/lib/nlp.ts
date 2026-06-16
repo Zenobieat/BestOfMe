@@ -106,6 +106,10 @@ function extractTitle(text: string): string {
   let t = text
     .replace(/elke (dag|avond|ochtend|week|maand|maandag|dinsdag|woensdag|donderdag|vrijdag|zaterdag|zondag)/gi, "")
     .replace(/every (day|evening|morning|week|month|monday|tuesday|wednesday|thursday|friday|saturday|sunday)/gi, "")
+    .replace(/\b(op|on)\b/gi, "")
+    .replace(/\b(maandag|dinsdag|woensdag|donderdag|vrijdag|zaterdag|zondag)\b/gi, "")
+    .replace(/\b(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/gi, "")
+    .replace(/\b(en|and|,)\b/gi, "")
     .replace(/dagelijks|daily|wekelijks|weekly|maandelijks|monthly/gi, "")
     .replace(/(\d+)\s*(minuten?|min|uur|hours?)/gi, "")
     .replace(/ik wil|i want to|ik ga|i'm going to|ik moet|i need to|maak een taak voor|create a? task for|voeg toe|add to calendar|zet in de kalender/gi, "")
@@ -119,6 +123,23 @@ function extractTitle(text: string): string {
   return t || text.trim();
 }
 
+// ── Multi-day detection ───────────────────────────────────────
+
+const DAY_NAMES: { pattern: RegExp; day: number }[] = [
+  { pattern: /\bmaandag\b|\bmonday\b/i, day: 1 },
+  { pattern: /\bdinsdag\b|\btuesday\b/i, day: 2 },
+  { pattern: /\bwoensdag\b|\bwednesday\b/i, day: 3 },
+  { pattern: /\bdonderdag\b|\bthursday\b/i, day: 4 },
+  { pattern: /\bvrijdag\b|\bfriday\b/i, day: 5 },
+  { pattern: /\bzaterdag\b|\bsaturday\b/i, day: 6 },
+  { pattern: /\bzondag\b|\bsunday\b/i, day: 0 },
+];
+
+function detectMultipleDays(text: string): number[] | null {
+  const found = DAY_NAMES.filter(({ pattern }) => pattern.test(text)).map(({ day }) => day);
+  return found.length >= 2 ? found.sort((a, b) => a - b) : null;
+}
+
 // ── Main parser ───────────────────────────────────────────────
 
 export function parseTaskFromText(text: string): NLPResult {
@@ -126,20 +147,29 @@ export function parseTaskFromText(text: string): NLPResult {
 
   // Also detect implicit task creation (contains action + frequency)
   const hasFrequency = RECURRENCE_PATTERNS.some((r) => r.pattern.test(text));
-  const hasAction = /\b(doen|maken|lopen|sporten|lezen|studeren|mediteren|schrijven|oefenen|do|make|run|workout|read|study|meditate|write|practice|push.?up|sit.?up|squat)\b/i.test(text);
+  const hasAction = /\b(doen|maken|lopen|sporten|lezen|studeren|mediteren|schrijven|oefenen|do|make|run|workout|read|study|meditate|write|practice|push.?up|sit.?up|squat|fitness|gym)\b/i.test(text);
 
-  if (!hasIntent && !(hasFrequency && hasAction)) {
+  const multiDays = detectMultipleDays(text);
+  const hasMultiDay = multiDays !== null;
+
+  if (!hasIntent && !(hasFrequency && hasAction) && !hasMultiDay) {
     return { task: null, confidence: 0, explanation: "" };
   }
 
-  // Detect recurrence
+  // Detect recurrence — multi-day wins if present
   let recurrenceType: RecurrenceType = "daily";
   let customDays: number[] | undefined;
-  for (const { pattern, type, days } of RECURRENCE_PATTERNS) {
-    if (pattern.test(text)) {
-      recurrenceType = type;
-      customDays = days;
-      break;
+
+  if (hasMultiDay) {
+    recurrenceType = "custom";
+    customDays = multiDays!;
+  } else {
+    for (const { pattern, type, days } of RECURRENCE_PATTERNS) {
+      if (pattern.test(text)) {
+        recurrenceType = type;
+        customDays = days;
+        break;
+      }
     }
   }
 

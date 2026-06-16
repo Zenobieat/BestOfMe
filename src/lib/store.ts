@@ -211,7 +211,11 @@ export const useStore = create<AppState>()(
         if (user.ownedPetIds.includes(petId)) return false;
         if (!spendCoins(catalogPet.cost)) return false;
         const pet: Pet = {
-          ...catalogPet,
+          id: catalogPet.id,
+          species: catalogPet.id,
+          name: catalogPet.name,
+          emoji: catalogPet.emoji,
+          cost: catalogPet.cost,
           purchasedAt: new Date().toISOString(),
           equippedAccessories: [],
           level: 1,

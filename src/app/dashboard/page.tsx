@@ -10,8 +10,7 @@ import { format } from "date-fns";
 import { nl, enUS } from "date-fns/locale";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Flame, Coins, CheckCircle, Plus, ChevronRight, TrendingUp } from "lucide-react";
-import { PetSpecies } from "@/lib/types";
+import { Flame, Coins, CheckCircle, Plus, TrendingUp } from "lucide-react";
 
 const PRIORITY_COLOR: Record<string, string> = {
   high: "var(--red)",
@@ -65,65 +64,139 @@ export default function DashboardPage() {
       </div>
 
       <div style={{ padding: "0 20px" }}>
-        {/* Hero section */}
-        <div style={{
-          marginTop: 20, marginBottom: 20,
-          padding: "24px",
-          borderRadius: 24,
-          background: "linear-gradient(135deg, #0F1520 0%, #141C2E 60%, #1A1040 100%)",
-          border: "1px solid var(--border)",
-          position: "relative", overflow: "hidden",
-          display: "flex", justifyContent: "space-between", alignItems: "center",
-        }}>
-          {/* Decorative */}
-          <div style={{
-            position: "absolute", top: -40, right: -40,
-            width: 160, height: 160, borderRadius: "50%",
-            background: "radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 70%)",
-          }} />
-          <div>
-            <p style={{ fontSize: 13, color: "var(--text-dim)", textTransform: "capitalize", marginBottom: 4 }}>
-              {todayFormatted}
-            </p>
-            <h2 style={{ fontSize: 22, fontWeight: 800, marginBottom: 8 }}>
-              {lang === "nl" ? `Hey ${user.name}` : `Hey ${user.name}`}
-            </h2>
-            <div style={{ marginBottom: 14 }}>
-              <p style={{ fontSize: 13, color: "var(--text-dim)", marginBottom: 6 }}>
-                {doneCount}/{todayTasks.length} {lang === "nl" ? "taken voltooid" : "tasks done"}
+
+        {/* ── Today's tasks — FIRST ─────────────────────────── */}
+        <div style={{ marginTop: 18, marginBottom: 20 }}>
+          {/* Section header */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+            <div>
+              <p style={{ fontSize: 12, color: "var(--text-dim)", textTransform: "capitalize", marginBottom: 2 }}>
+                {todayFormatted}
               </p>
-              <div className="progress-bar" style={{ width: 180 }}>
-                <div className="progress-fill" style={{ width: `${completionRate}%` }} />
-              </div>
+              <h2 style={{ fontSize: 20, fontWeight: 800 }}>
+                {lang === "nl" ? "Vandaag" : "Today"}
+                {todayTasks.length > 0 && (
+                  <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-dim)", marginLeft: 8 }}>
+                    {doneCount}/{todayTasks.length}
+                  </span>
+                )}
+              </h2>
             </div>
-            <p style={{ fontSize: 28, fontWeight: 900 }} className="gradient-text">{completionRate}%</p>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              {/* Active pet mini */}
+              {activePet ? (
+                <Link href="/pets"><Pet3D species={activePet.species} size={52} /></Link>
+              ) : (
+                <Link href="/pets" style={{
+                  width: 48, height: 48, borderRadius: 14,
+                  background: "var(--surface)", border: "1px dashed var(--border)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                  <Plus size={16} color="var(--text-faint)" />
+                </Link>
+              )}
+              <Link href="/tasks">
+                <span style={{ fontSize: 13, color: "var(--primary-light)", display: "flex", alignItems: "center", gap: 4 }}>
+                  <Plus size={14} />
+                </span>
+              </Link>
+            </div>
           </div>
 
-          {/* Active pet 3D */}
-          {activePet && (
-            <Link href="/pets" style={{ flexShrink: 0 }}>
-              <Pet3D species={activePet.species as PetSpecies} size={110} />
-            </Link>
+          {/* Progress bar */}
+          {todayTasks.length > 0 && (
+            <div style={{ marginBottom: 14 }}>
+              <div className="progress-bar">
+                <div className="progress-fill" style={{ width: `${completionRate}%` }} />
+              </div>
+              <p style={{ fontSize: 11, color: "var(--text-faint)", marginTop: 4, textAlign: "right" }}>
+                {completionRate}% {lang === "nl" ? "voltooid" : "complete"}
+              </p>
+            </div>
           )}
-          {!activePet && (
-            <Link href="/pets" style={{
-              width: 90, height: 90,
-              borderRadius: 20,
-              background: "var(--surface)",
+
+          {todayTasks.length === 0 ? (
+            <div style={{
+              padding: "40px 20px", textAlign: "center",
+              background: "var(--card)", borderRadius: 20,
               border: "1px dashed var(--border)",
-              display: "flex", flexDirection: "column",
-              alignItems: "center", justifyContent: "center",
-              gap: 6, flexShrink: 0,
             }}>
-              <Plus size={20} color="var(--text-faint)" />
-              <span style={{ fontSize: 10, color: "var(--text-faint)" }}>
-                {lang === "nl" ? "Dier" : "Pet"}
-              </span>
-            </Link>
+              <CheckCircle size={36} color="var(--border)" style={{ margin: "0 auto 12px" }} />
+              <p style={{ color: "var(--text-dim)", fontSize: 15, marginBottom: 6 }}>
+                {tt("no_tasks_today")}
+              </p>
+              <Link href="/tasks">
+                <button className="btn-primary" style={{ marginTop: 12, padding: "10px 20px" }}>
+                  <Plus size={16} /> {tt("add_task")}
+                </button>
+              </Link>
+            </div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {/* Undone tasks first */}
+              {[...todayTasks].sort((a, b) => {
+                const da = isTaskCompleted(a.id, today) ? 1 : 0;
+                const db = isTaskCompleted(b.id, today) ? 1 : 0;
+                return da - db;
+              }).map((task) => {
+                const done = isTaskCompleted(task.id, today);
+                return (
+                  <div
+                    key={task.id}
+                    onClick={() => done ? uncompleteTask(task.id, today) : completeTask(task.id, today)}
+                    style={{
+                      display: "flex", alignItems: "center", gap: 14,
+                      padding: "14px 16px", borderRadius: 16,
+                      background: done ? "rgba(16,185,129,0.06)" : "var(--card)",
+                      border: "1px solid",
+                      borderColor: done ? "rgba(16,185,129,0.2)" : "var(--border)",
+                      cursor: "pointer", transition: "all 0.2s",
+                      opacity: done ? 0.6 : 1,
+                    }}
+                  >
+                    <div style={{
+                      width: 3, height: 36, borderRadius: 2, flexShrink: 0,
+                      background: PRIORITY_COLOR[task.priority],
+                    }} />
+                    <div style={{
+                      width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
+                      border: `2px solid ${done ? "var(--green)" : "var(--border-light)"}`,
+                      background: done ? "var(--green)" : "transparent",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      transition: "all 0.25s",
+                    }}>
+                      {done && <CheckCircle size={14} color="white" strokeWidth={3} />}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{
+                        fontWeight: 600, fontSize: 15,
+                        textDecoration: done ? "line-through" : "none",
+                        color: done ? "var(--text-dim)" : "var(--text)",
+                        whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                      }}>
+                        {task.title}
+                      </p>
+                      {task.estimatedMinutes && (
+                        <p style={{ fontSize: 12, color: "var(--text-faint)", marginTop: 2 }}>
+                          {task.estimatedMinutes} min
+                        </p>
+                      )}
+                    </div>
+                    <div style={{
+                      fontSize: 12, fontWeight: 700, color: "var(--gold)",
+                      background: "rgba(245,158,11,0.1)",
+                      borderRadius: 8, padding: "4px 8px", flexShrink: 0,
+                    }}>
+                      +{task.priority === "high" ? 20 : task.priority === "medium" ? 10 : 5}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           )}
         </div>
 
-        {/* Stats row */}
+        {/* ── Stats row ─────────────────────────────────────── */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 20 }}>
           {[
             { icon: <Flame size={18} color="var(--red)" />, value: user.currentStreak, label: tt("streak"), sub: tt("days") },
@@ -138,96 +211,6 @@ export default function DashboardPage() {
             </div>
           ))}
         </div>
-
-        {/* Today's tasks */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-          <h3 style={{ fontSize: 16, fontWeight: 700 }}>
-            {lang === "nl" ? "Vandaag" : "Today"}
-          </h3>
-          <Link href="/tasks">
-            <span style={{ fontSize: 13, color: "var(--primary-light)", display: "flex", alignItems: "center", gap: 4 }}>
-              <Plus size={14} /> {tt("add_task")}
-            </span>
-          </Link>
-        </div>
-
-        {todayTasks.length === 0 ? (
-          <div style={{
-            padding: "48px 20px", textAlign: "center",
-            background: "var(--card)", borderRadius: 20,
-            border: "1px dashed var(--border)",
-          }}>
-            <CheckCircle size={40} color="var(--border)" style={{ margin: "0 auto 14px" }} />
-            <p style={{ color: "var(--text-dim)", fontSize: 15, marginBottom: 6 }}>
-              {tt("no_tasks_today")}
-            </p>
-            <Link href="/tasks">
-              <button className="btn-primary" style={{ marginTop: 16, padding: "11px 22px" }}>
-                <Plus size={16} />
-                {tt("add_task")}
-              </button>
-            </Link>
-          </div>
-        ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {todayTasks.map((task) => {
-              const done = isTaskCompleted(task.id, today);
-              return (
-                <div
-                  key={task.id}
-                  onClick={() => done ? uncompleteTask(task.id, today) : completeTask(task.id, today)}
-                  style={{
-                    display: "flex", alignItems: "center", gap: 14,
-                    padding: "14px 16px", borderRadius: 16,
-                    background: done ? "rgba(16,185,129,0.06)" : "var(--card)",
-                    border: "1px solid",
-                    borderColor: done ? "rgba(16,185,129,0.2)" : "var(--border)",
-                    cursor: "pointer", transition: "all 0.2s",
-                    opacity: done ? 0.65 : 1,
-                  }}
-                >
-                  {/* Priority stripe */}
-                  <div style={{
-                    width: 3, height: 36, borderRadius: 2, flexShrink: 0,
-                    background: PRIORITY_COLOR[task.priority],
-                  }} />
-                  {/* Checkbox */}
-                  <div style={{
-                    width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
-                    border: `2px solid ${done ? "var(--green)" : "var(--border-light)"}`,
-                    background: done ? "var(--green)" : "transparent",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    transition: "all 0.25s",
-                  }}>
-                    {done && <CheckCircle size={14} color="white" strokeWidth={3} />}
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{
-                      fontWeight: 600, fontSize: 15,
-                      textDecoration: done ? "line-through" : "none",
-                      color: done ? "var(--text-dim)" : "var(--text)",
-                      whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
-                    }}>
-                      {task.title}
-                    </p>
-                    {task.estimatedMinutes && (
-                      <p style={{ fontSize: 12, color: "var(--text-faint)", marginTop: 2 }}>
-                        {task.estimatedMinutes} min
-                      </p>
-                    )}
-                  </div>
-                  <div style={{
-                    fontSize: 12, fontWeight: 700, color: "var(--gold)",
-                    background: "rgba(245,158,11,0.1)",
-                    borderRadius: 8, padding: "4px 8px", flexShrink: 0,
-                  }}>
-                    +{task.priority === "high" ? 20 : task.priority === "medium" ? 10 : 5}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
       </div>
 
       <BottomNav />
